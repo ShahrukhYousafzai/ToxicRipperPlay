@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests" />
+    <title>ToxicRipper</title>
+    <style>
+        html, body {
+            background: #000;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        #loading-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        #logo-container img {
+            max-width: 250px;
+            height: auto;
+            margin-bottom: 20px;
+        }
+
+        #progress-bar-container {
+            width: 50%;
+            max-width: 400px;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+
+        #progress-bar {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(to right, #D6B673, #89FE28);
+            transition: width 0.3s ease;
+            border-radius: 10px;
+            position: absolute;
+        }
+
+        #progress-text {
+            width: 100%;
+            text-align: center;
+            font-size: 14px;
+            font-weight: bold;
+            color: white;
+            position: absolute;
+            z-index: 1;
+        }
+
+        #gameContainer {
+            background: transparent !important;
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #gameContainer canvas {
+            position: absolute;
+        }
+
+        #credit-text {
+            position: fixed;
+            /* Ensures it stays at the bottom regardless of screen size */
+            bottom: 2vh;
+            /* Always 2% of the viewport height from the bottom */
+            left: 50%;
+            /* Center it horizontally */
+            transform: translateX(-50%);
+            /* Adjusts for perfect centering */
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.6);
+            text-align: center;
+            font-family: Arial, sans-serif;
+            padding-bottom: 5px;
+            width: 100%;
+            max-width: 400px;
+            /* Prevents stretching on larger screens */
+            transition: opacity 0.5s ease-out;
+        }
+    </style>
+
+<script>window.SimpleSpectrum={};window.AudioContext=(function(){var q=window.AudioContext||window.webkitAudioContext;return function(){var ac=new q();window.SimpleSpectrum.ac=ac;window.SimpleSpectrum.a=ac.createAnalyser();window.SimpleSpectrum.a.smoothingTimeConstant=0;window.SimpleSpectrum.fa=new Uint8Array(window.SimpleSpectrum.a.frequencyBinCount);window.SimpleSpectrum.la=new Uint8Array(window.SimpleSpectrum.a.fftSize);window.SimpleSpectrum.a.connect(ac.destination);ac.actualDestination=ac.destination;Object.defineProperty(ac,'destination',{value:window.SimpleSpectrum.a,writable:false});return ac;}})();</script>
+</head>
+
+<body>
+
+    <div id="loading-container">
+        <div id="logo-container">
+            <img src="./Logo.png" alt="Game Logo">
+        </div>
+        <div id="progress-bar-container">
+            <div id="progress-bar"></div>
+            <div id="progress-text">0%</div>
+        </div>
+    </div>
+
+    <div id="gameContainer">
+        <canvas id="unity-canvas"></canvas>
+
+        <div id="credit-text">Toxic Skulls Club</div>
+
+        <script src="Build/ToxicRipper.loader.js"></script>
+        <script>
+            var canvas = document.querySelector("#unity-canvas");
+            var creditText = document.querySelector("#credit-text");
+            var progressBar = document.querySelector("#progress-bar");
+            var progressText = document.querySelector("#progress-text");
+            var loadingContainer = document.querySelector("#loading-container");
+
+            var config = {
+                dataUrl: "Build/ToxicRipper.data",
+                frameworkUrl: "Build/ToxicRipper.framework.js",
+                codeUrl: "Build/ToxicRipper.wasm",
+                streamingAssetsUrl: "StreamingAssets",
+                companyName: "Toxic Skulls Club",
+                productName: "ToxicRipper",
+                productVersion: "1.0",
+            };
+
+            function progressHandler(progress) {
+                var percent = Math.round(progress * 100) + '%';
+                progressBar.style.width = percent;
+                progressText.innerText = percent;
+
+                creditText.style.opacity = 1 - progress;
+            }
+
+            function onResize() {
+                var container = canvas.parentElement;
+                var w, h;
+
+                var scaleToFit = true;
+                if (scaleToFit) {
+                    w = window.innerWidth;
+                    h = window.innerHeight;
+                    var r = 600 / 960;
+
+                    if (w * r > window.innerHeight) {
+                        w = Math.min(w, Math.ceil(h / r));
+                    }
+                    h = Math.floor(w * r);
+                } else {
+                    w = 960;
+                    h = 600;
+                }
+
+                container.style.width = canvas.style.width = w + "px";
+                container.style.height = canvas.style.height = h + "px";
+                container.style.top = Math.floor((window.innerHeight - h) / 2) + "px";
+                container.style.left = Math.floor((window.innerWidth - w) / 2) + "px";
+            }
+
+            createUnityInstance(canvas, config, progressHandler).then(function(instance) {
+                canvas = instance.Module.canvas;
+                onResize();
+                loadingContainer.style.display = "none";
+            });
+
+            window.addEventListener('resize', onResize);
+            onResize();
+
+            if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+                const meta = document.createElement('meta');
+                meta.name = 'viewport';
+                meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
+                document.getElementsByTagName('head')[0].appendChild(meta);
+            }
+        </script>
+    </div>
+
+</body>
+
+</html>
