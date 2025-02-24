@@ -122,7 +122,7 @@
 
         <div id="credit-text">Toxic Skulls Club</div>
 
-        <script src="Build/a83ab1449c9c73b2e6c017f19f772989.loader.js"></script>
+        <script src="Build/299e42192e2f3fbc797251c57b86ab19.loader.js"></script>
         <script>
             var canvas = document.querySelector("#unity-canvas");
             var creditText = document.querySelector("#credit-text");
@@ -132,9 +132,9 @@
             var nethereumUnityInstance = null;
 
             var config = {
-                dataUrl: "Build/3cf8de5a16015a484271c7ad52392882.data.unityweb",
-                frameworkUrl: "Build/5b18c9002f1534db87a5a4bd8f0f042a.framework.js.unityweb",
-                codeUrl: "Build/d2eec107435c7deb8d907c05dba3d6fe.wasm.unityweb",
+                dataUrl: "Build/6bd9bcdf98980b0dd1bd2fa497aa3965.data.unityweb",
+                frameworkUrl: "Build/0ee73dd6609c4388645e4f92548e2c29.framework.js.unityweb",
+                codeUrl: "Build/0db757bee86478b988a522015f04a904.wasm.unityweb",
                 streamingAssetsUrl: "StreamingAssets",
                 companyName: "Toxic Skulls Club",
                 productName: "ToxicRipper",
@@ -170,14 +170,27 @@
 
                 container.style.width = canvas.style.width = w + "px";
                 container.style.height = canvas.style.height = h + "px";
-                container.style.top = Math.floor((window.innerHeight - h) / 2) + "px";
-                container.style.left = Math.floor((window.innerWidth - w) / 2) + "px";
+               
+                
+                // Fix centering issue by using flexbox
+                container.style.display = "flex";
+                container.style.justifyContent = "center";
+                container.style.alignItems = "center";
+
+                // Ensure Unity does not override positioning
+    canvas.style.position = "absolute";
+    canvas.style.top = "50%";
+    canvas.style.left = "50%";
+    canvas.style.transform = "translate(-50%, -50%)";
             }
 
             createUnityInstance(canvas, config, progressHandler).then(function(instance) {
                 nethereumUnityInstance = instance;
                 canvas = instance.Module.canvas;
-                onResize();
+                
+    // Re-apply centering after Unity initializes
+    setTimeout(onResize, 100);
+    
                 loadingContainer.style.display = "none";
             });
 
@@ -190,6 +203,8 @@
                 meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
                 document.getElementsByTagName('head')[0].appendChild(meta);
             }
+
+            document.querySelector('#canvas-container').requestFullscreen();
         </script>
     </div>
 
